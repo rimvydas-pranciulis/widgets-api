@@ -1,4 +1,4 @@
-package lt.rimvydas.widgets.service.model;
+package lt.rimvydas.widgets.model;
 
 import java.util.List;
 

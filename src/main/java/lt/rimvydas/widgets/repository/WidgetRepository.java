@@ -1,7 +1,7 @@
-package lt.rimvydas.widgets.service.repository;
+package lt.rimvydas.widgets.repository;
 
-import lt.rimvydas.widgets.service.model.ConnectionPort;
-import lt.rimvydas.widgets.service.model.Widget;
+import lt.rimvydas.widgets.model.ConnectionPort;
+import lt.rimvydas.widgets.model.Widget;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -12,16 +12,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Repository
-public class WidgetsRepository {
+public class WidgetRepository {
 
     private static final String CONNECTION_PORTS_SEPARATOR = ",";
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public WidgetsRepository(NamedParameterJdbcTemplate jdbcTemplate) {
+    public WidgetRepository(NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

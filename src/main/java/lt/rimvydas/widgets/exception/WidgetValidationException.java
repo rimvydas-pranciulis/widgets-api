@@ -1,6 +1,5 @@
-package lt.rimvydas.widgets.service;
+package lt.rimvydas.widgets.exception;
 
-// TODO: map exception to BAD_REQUEST
 public class WidgetValidationException extends RuntimeException {
 
     public WidgetValidationException(String message) {

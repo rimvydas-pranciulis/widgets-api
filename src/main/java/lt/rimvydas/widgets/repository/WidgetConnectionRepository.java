@@ -1,8 +1,8 @@
-package lt.rimvydas.widgets.service.repository;
+package lt.rimvydas.widgets.repository;
 
-import lt.rimvydas.widgets.service.model.ConnectionPort;
-import lt.rimvydas.widgets.service.model.WidgetConnection;
-import lt.rimvydas.widgets.service.model.WidgetConnectionDetails;
+import lt.rimvydas.widgets.model.ConnectionPort;
+import lt.rimvydas.widgets.model.WidgetConnection;
+import lt.rimvydas.widgets.model.WidgetConnectionDetails;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -13,11 +13,11 @@ import java.util.Map;
 import java.util.Set;
 
 @Repository
-public class WidgetConnectionsRepository {
+public class WidgetConnectionRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public WidgetConnectionsRepository(NamedParameterJdbcTemplate jdbcTemplate) {
+    public WidgetConnectionRepository(NamedParameterJdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

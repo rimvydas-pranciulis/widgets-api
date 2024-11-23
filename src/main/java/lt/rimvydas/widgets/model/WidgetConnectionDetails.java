@@ -1,4 +1,4 @@
-package lt.rimvydas.widgets.service.model;
+package lt.rimvydas.widgets.model;
 
 public record WidgetConnectionDetails(long widgetId, ConnectionPort connectionPort) {
 

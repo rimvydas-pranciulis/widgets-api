@@ -1,8 +1,9 @@
 package lt.rimvydas.widgets.service;
 
-import lt.rimvydas.widgets.service.model.*;
-import lt.rimvydas.widgets.service.repository.WidgetConnectionsRepository;
-import lt.rimvydas.widgets.service.repository.WidgetsRepository;
+import lt.rimvydas.widgets.exception.WidgetValidationException;
+import lt.rimvydas.widgets.model.*;
+import lt.rimvydas.widgets.repository.WidgetConnectionRepository;
+import lt.rimvydas.widgets.repository.WidgetRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -18,19 +19,36 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class WidgetsServiceTest {
+class WidgetServiceTest {
 
     @Mock
-    private WidgetsRepository widgetsRepository;
+    private WidgetRepository widgetRepository;
 
     @Mock
-    private WidgetConnectionsRepository widgetConnectionsRepository;
+    private WidgetConnectionRepository widgetConnectionRepository;
 
     @InjectMocks
-    private WidgetsService service;
+    private WidgetService service;
 
     @Captor
     private ArgumentCaptor<WidgetConnection> widgetConnectionArgumentCaptor;
+
+    @Test
+    void connectWidgets_throwsValidationException_whenUsingSameSerialNumber() {
+        // given
+        var widget1ConnectionRequest = new WidgetConnectionRequest("serial1", ConnectionPort.P);
+        var widget2ConnectionRequest = new WidgetConnectionRequest("serial1", ConnectionPort.Q);
+
+        // when
+        var exception = assertThrows(
+                WidgetValidationException.class,
+                () -> service.connectWidgets(widget1ConnectionRequest, widget2ConnectionRequest)
+        );
+
+        // then
+        assertEquals("Serial numbers has to be different", exception.getMessage());
+        verifyNoInteractions(widgetConnectionRepository);
+    }
 
     @Test
     void connectWidgets_throwsValidationException_whenWidget1DoesNotExist() {
@@ -46,7 +64,7 @@ class WidgetsServiceTest {
 
         // then
         assertEquals("Couldn't find widget by serial number: serial1", exception.getMessage());
-        verifyNoInteractions(widgetConnectionsRepository);
+        verifyNoInteractions(widgetConnectionRepository);
     }
 
     @Test
@@ -58,7 +76,7 @@ class WidgetsServiceTest {
         var widget2Port = ConnectionPort.Q;
         var widget1ConnectionRequest = new WidgetConnectionRequest(widget1Serial, widget1Port);
         var widget2ConnectionRequest = new WidgetConnectionRequest(widget2Serial, widget2Port);
-        when(widgetsRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(
+        when(widgetRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(
                 List.of(new Widget(1L, "name", widget1Serial, List.of(widget1Port)))
         );
 
@@ -70,7 +88,7 @@ class WidgetsServiceTest {
 
         // then
         assertEquals("Couldn't find widget by serial number: serial2", exception.getMessage());
-        verifyNoInteractions(widgetConnectionsRepository);
+        verifyNoInteractions(widgetConnectionRepository);
     }
 
     @Test
@@ -80,7 +98,7 @@ class WidgetsServiceTest {
         var widget2Serial = "serial2";
         var widget1ConnectionRequest = new WidgetConnectionRequest(widget1Serial, ConnectionPort.P);
         var widget2ConnectionRequest = new WidgetConnectionRequest(widget2Serial, ConnectionPort.Q);
-        when(widgetsRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(
+        when(widgetRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(
                 List.of(new Widget(1L, "name", widget1Serial, List.of(ConnectionPort.Q, ConnectionPort.R)))
         );
 
@@ -92,7 +110,7 @@ class WidgetsServiceTest {
 
         // then
         assertEquals("Widget 'serial1' doesn't support connection port 'P', supported connection ports are: [Q, R]", exception.getMessage());
-        verifyNoInteractions(widgetConnectionsRepository);
+        verifyNoInteractions(widgetConnectionRepository);
     }
 
     @Test
@@ -102,7 +120,7 @@ class WidgetsServiceTest {
         var widget2Serial = "serial2";
         var widget1ConnectionRequest = new WidgetConnectionRequest(widget1Serial, ConnectionPort.P);
         var widget2ConnectionRequest = new WidgetConnectionRequest(widget2Serial, ConnectionPort.Q);
-        when(widgetsRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn((List.of(
+        when(widgetRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn((List.of(
                 new Widget(1L, "name", widget1Serial, List.of(ConnectionPort.P)),
                 new Widget(2L, "name", widget2Serial, List.of(ConnectionPort.P, ConnectionPort.R))
         )));
@@ -115,7 +133,7 @@ class WidgetsServiceTest {
 
         // then
         assertEquals("Widget 'serial2' doesn't support connection port 'Q', supported connection ports are: [P, R]", exception.getMessage());
-        verifyNoInteractions(widgetConnectionsRepository);
+        verifyNoInteractions(widgetConnectionRepository);
     }
 
     @Test
@@ -129,7 +147,7 @@ class WidgetsServiceTest {
         var widget2Id = 2L;
         var widget1ConnectionRequest = new WidgetConnectionRequest(widget1Serial, widget1Port);
         var widget2ConnectionRequest = new WidgetConnectionRequest(widget2Serial, widget2Port);
-        when(widgetsRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(List.of(
+        when(widgetRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(List.of(
                 new Widget(widget1Id, "name", widget1Serial, List.of(widget1Port)),
                 new Widget(widget2Id, "name", widget2Serial, List.of(widget2Port))
         ));
@@ -138,7 +156,7 @@ class WidgetsServiceTest {
         service.connectWidgets(widget1ConnectionRequest, widget2ConnectionRequest);
 
         // then
-        verify(widgetConnectionsRepository).save(widgetConnectionArgumentCaptor.capture());
+        verify(widgetConnectionRepository).save(widgetConnectionArgumentCaptor.capture());
         var widgetConnection = widgetConnectionArgumentCaptor.getValue();
         assertEquals(widget1Id, widgetConnection.widget1().widgetId());
         assertEquals(widget2Id, widgetConnection.widget2().widgetId());
@@ -157,11 +175,11 @@ class WidgetsServiceTest {
         var widget2Id = 2L;
         var widget1ConnectionRequest = new WidgetConnectionRequest(widget1Serial, widget1Port);
         var widget2ConnectionRequest = new WidgetConnectionRequest(widget2Serial, widget2Port);
-        when(widgetsRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(List.of(
+        when(widgetRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(List.of(
                 new Widget(1L, "name", widget1Serial, List.of(widget1Port)),
                 new Widget(2L, "name", widget2Serial, List.of(widget2Port))
         ));
-        when(widgetConnectionsRepository.findWidgetConnections(Set.of(widget1Id, widget2Id))).thenReturn(List.of(new WidgetConnection(
+        when(widgetConnectionRepository.findWidgetConnections(Set.of(widget1Id, widget2Id))).thenReturn(List.of(new WidgetConnection(
                         new WidgetConnectionDetails(widget2Id, ConnectionPort.P),
                         new WidgetConnectionDetails(widget1Id, ConnectionPort.P)
                 )));
@@ -174,7 +192,7 @@ class WidgetsServiceTest {
 
         // then
         assertEquals("Widgets are already connected", exception.getMessage());
-        verifyNoMoreInteractions(widgetConnectionsRepository);
+        verifyNoMoreInteractions(widgetConnectionRepository);
     }
 
     @Test
@@ -188,11 +206,11 @@ class WidgetsServiceTest {
         var widget2Id = 2L;
         var widget1ConnectionRequest = new WidgetConnectionRequest(widget1Serial, widget1Port);
         var widget2ConnectionRequest = new WidgetConnectionRequest(widget2Serial, widget2Port);
-        when(widgetsRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(List.of(
+        when(widgetRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(List.of(
                 new Widget(1L, "name", widget1Serial, List.of(widget1Port)),
                 new Widget(2L, "name", widget2Serial, List.of(widget2Port))
         ));
-        when(widgetConnectionsRepository.findWidgetConnections(Set.of(widget1Id, widget2Id))).thenReturn(List.of(new WidgetConnection(
+        when(widgetConnectionRepository.findWidgetConnections(Set.of(widget1Id, widget2Id))).thenReturn(List.of(new WidgetConnection(
                 new WidgetConnectionDetails(widget1Id, widget1Port),
                 new WidgetConnectionDetails(3L, ConnectionPort.P)
         )));
@@ -205,7 +223,7 @@ class WidgetsServiceTest {
 
         // then
         assertEquals("Widget 'serial1' doesn't have available connection port 'P'", exception.getMessage());
-        verifyNoMoreInteractions(widgetConnectionsRepository);
+        verifyNoMoreInteractions(widgetConnectionRepository);
     }
 
     @Test
@@ -219,11 +237,11 @@ class WidgetsServiceTest {
         var widget2Id = 2L;
         var widget1ConnectionRequest = new WidgetConnectionRequest(widget1Serial, widget1Port);
         var widget2ConnectionRequest = new WidgetConnectionRequest(widget2Serial, widget2Port);
-        when(widgetsRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(List.of(
+        when(widgetRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(List.of(
                 new Widget(1L, "name", widget1Serial, List.of(widget1Port)),
                 new Widget(2L, "name", widget2Serial, List.of(widget2Port))
         ));
-        when(widgetConnectionsRepository.findWidgetConnections(Set.of(widget1Id, widget2Id))).thenReturn(List.of(new WidgetConnection(
+        when(widgetConnectionRepository.findWidgetConnections(Set.of(widget1Id, widget2Id))).thenReturn(List.of(new WidgetConnection(
                 new WidgetConnectionDetails(3L, ConnectionPort.R),
                 new WidgetConnectionDetails(widget2Id, widget2Port)
         )));
@@ -236,7 +254,7 @@ class WidgetsServiceTest {
 
         // then
         assertEquals("Widget 'serial2' doesn't have available connection port 'Q'", exception.getMessage());
-        verifyNoMoreInteractions(widgetConnectionsRepository);
+        verifyNoMoreInteractions(widgetConnectionRepository);
     }
 
     @Test
@@ -250,11 +268,11 @@ class WidgetsServiceTest {
         var widget2Id = 2L;
         var widget1ConnectionRequest = new WidgetConnectionRequest(widget1Serial, widget1Port);
         var widget2ConnectionRequest = new WidgetConnectionRequest(widget2Serial, widget2Port);
-        when(widgetsRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(List.of(
+        when(widgetRepository.findBySerialNumbers(Set.of(widget1Serial, widget2Serial))).thenReturn(List.of(
                 new Widget(1L, "name", widget1Serial, List.of(widget1Port, widget1Port)),
                 new Widget(2L, "name", widget2Serial, List.of(widget2Port))
         ));
-        when(widgetConnectionsRepository.findWidgetConnections(Set.of(widget1Id, widget2Id))).thenReturn(List.of(new WidgetConnection(
+        when(widgetConnectionRepository.findWidgetConnections(Set.of(widget1Id, widget2Id))).thenReturn(List.of(new WidgetConnection(
                 new WidgetConnectionDetails(widget1Id, widget1Port),
                 new WidgetConnectionDetails(3L, ConnectionPort.P)
         )));
@@ -263,7 +281,7 @@ class WidgetsServiceTest {
         service.connectWidgets(widget1ConnectionRequest, widget2ConnectionRequest);
 
         // then
-        verify(widgetConnectionsRepository).save(widgetConnectionArgumentCaptor.capture());
+        verify(widgetConnectionRepository).save(widgetConnectionArgumentCaptor.capture());
         var widgetConnection = widgetConnectionArgumentCaptor.getValue();
         assertEquals(widget1Id, widgetConnection.widget1().widgetId());
         assertEquals(widget2Id, widgetConnection.widget2().widgetId());
