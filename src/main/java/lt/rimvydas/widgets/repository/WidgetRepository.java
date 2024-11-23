@@ -38,9 +38,8 @@ public class WidgetRepository {
     }
 
     public Optional<Widget> findBySerialNumber(String serialNumber) {
-        var query = "SELECT * FROM widgets WHERE serial_number = :serial_number";
-        var params = Map.of("serial_number", serialNumber);
-        return Optional.ofNullable(jdbcTemplate.queryForObject(query, params, this::resultSetToWidgetMapper));
+        return findBySerialNumbers(Set.of(serialNumber)).stream()
+                .findFirst();
     }
 
     public List<Widget> findBySerialNumbers(Set<String> serialNumbers) {
