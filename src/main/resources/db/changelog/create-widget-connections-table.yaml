@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: Rimvydas Pranciulis
+      changes:
+        - createTable:
+            # TODO: created_at
+            # TODO: unique index on widget ids
+            # TODO: foreign key
+            tableName: widget_connections
+            columns:
+              - column:
+                  # TODO: index
+                  name: widget1_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  # TODO: index
+                  name: widget2_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: widget1_connection_port
+                  type: char
+                  constraints:
+                    nullable: false
+              - column:
+                  name: widget2_connection_port
+                  type: char
+                  constraints:
+                    nullable: false
