@@ -1,6 +1,6 @@
 # Widgets API
 
-## Prerequisites forUsing Application
+## Prerequisites for Using Application
 - Docker
 - Java 21 (for development only)
 
