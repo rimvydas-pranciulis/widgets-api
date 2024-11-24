@@ -16,7 +16,7 @@ Application can be started in two ways:
 After starting application go to http://localhost:8080/swagger-ui/index.html to see API definition and test it.
 
 ## Architecture Decisions
-### Database
+#### Database
 Decision was to use PostgreSQL as database, because it was best fit from databases that I have experience with.
 It is performant enough for handling predicted number of transactions for this API, especially if using some well setup cluster like AWS Aurora.
 
