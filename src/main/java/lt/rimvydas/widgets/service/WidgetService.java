@@ -33,6 +33,14 @@ public class WidgetService {
     }
 
     public void deleteWidget(String serialNumber) {
+        var widgetId = widgetRepository.findBySerialNumber(serialNumber)
+                .map(Widget::id)
+                .orElseThrow(() -> new WidgetValidationException("Widget with serial number not found: " + serialNumber));
+
+        if (!widgetConnectionRepository.findWidgetConnections(Set.of(widgetId)).isEmpty()) {
+            throw new WidgetValidationException("Can't delete widget, because it has connections to other widgets");
+        }
+
         widgetRepository.deleteBySerialNumber(serialNumber);
     }
 

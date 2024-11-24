@@ -38,9 +38,13 @@ public class WidgetController {
     }
 
     @DeleteMapping("{serialNumber}")
-    public void deleteWidget(@PathVariable @NotEmpty String serialNumber) {
-        // TODO: delete connections
-        widgetService.deleteWidget(serialNumber);
+    public ResponseEntity<String> deleteWidget(@PathVariable @NotEmpty String serialNumber) {
+        try {
+            widgetService.deleteWidget(serialNumber);
+            return ResponseEntity.ok("OK");
+        } catch (WidgetValidationException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     private Widget toInternalWidget(ExternalWidget widget) {

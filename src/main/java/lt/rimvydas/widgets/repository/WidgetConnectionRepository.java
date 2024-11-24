@@ -22,22 +22,21 @@ public class WidgetConnectionRepository {
     }
 
     public void save(WidgetConnection widgetConnection) {
-        // TODO: sort by widget id
         var query = """
-                INSERT INTO widget_connections(widget1_id, widget2_id, widget1_connection_port, widget2_connection_port)
-                VALUES(:widget1_id, :widget2_id, :widget1_connection_port, :widget2_connection_port)""";
+                INSERT INTO widget_connections(widget1_id, widget2_id, widget1_connection_port, widget2_connection_port, created_at)
+                VALUES(:widget1_id, :widget2_id, :widget1_connection_port, :widget2_connection_port, NOW())""";
         var params = Map.of(
                 "widget1_id", widgetConnection.widget1().widgetId(),
                 "widget2_id", widgetConnection.widget2().widgetId(),
-                "widget1_connection_port", widgetConnection.widget1().widgetId(),
-                "widget2_connection_port", widgetConnection.widget1().widgetId()
+                "widget1_connection_port", widgetConnection.widget1().connectionPort().name(),
+                "widget2_connection_port", widgetConnection.widget2().connectionPort().name()
         );
         jdbcTemplate.update(query, params);
     }
 
     public List<WidgetConnection> findWidgetConnections(Set<Long> widgetIds) {
         var query = "SELECT * FROM widget_connections WHERE widget1_id IN (:widget_ids) OR widget2_id IN (:widget_ids)";
-        var params = Map.of("serial_numbers", widgetIds);
+        var params = Map.of("widget_ids", widgetIds);
         return jdbcTemplate.query(query, params, this::resultSetToWidgetConnectionMapper);
     }
 

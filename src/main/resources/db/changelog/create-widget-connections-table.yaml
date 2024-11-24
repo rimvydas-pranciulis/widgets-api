@@ -4,19 +4,14 @@ databaseChangeLog:
       author: Rimvydas Pranciulis
       changes:
         - createTable:
-            # TODO: created_at
-            # TODO: unique index on widget ids
-            # TODO: foreign key
             tableName: widget_connections
             columns:
               - column:
-                  # TODO: index
                   name: widget1_id
                   type: BIGINT
                   constraints:
                     nullable: false
               - column:
-                  # TODO: index
                   name: widget2_id
                   type: BIGINT
                   constraints:
@@ -31,3 +26,34 @@ databaseChangeLog:
                   type: char
                   constraints:
                     nullable: false
+              - column:
+                  name: created_at
+                  type: datetime
+                  constraints:
+                    nullable: false
+        - createIndex:
+            columns:
+              - column:
+                  name: widget1_id
+            indexName: idx_widget1_id
+            tableName: widget_connections
+        - createIndex:
+            columns:
+              - column:
+                  name: widget2_id
+            indexName: idx_widget2_id
+            tableName: widget_connections
+        - addForeignKeyConstraint:
+            baseColumnNames: widget1_id
+            baseTableName: widget_connections
+            constraintName: fk_widget1_id
+            onDelete: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: widgets
+        - addForeignKeyConstraint:
+            baseColumnNames: widget2_id
+            baseTableName: widget_connections
+            constraintName: fk_widget2_id
+            onDelete: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: widgets

@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/create-widgets-table.yaml
   - include:
       file: db/changelog/create-widget-connections-table.yaml
+  - include:
+      file: db/changelog/create-widget-connections-unique-index.sql
